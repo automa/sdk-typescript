@@ -1,0 +1,36 @@
+{
+  "name": "@automa/bot",
+  "version": "0.0.1",
+  "description": "Bot helpers for Automa",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "module": "src/index.ts",
+  "author": "Automa, Inc. <engineering@automa.app>",
+  "homepage": "https://automa.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/automa/sdk-typescript.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/automa/sdk-typescript/issues"
+  },
+  "keywords": [
+    "automa"
+  ],
+  "dependencies": {
+    "@opentelemetry/api": "^1.8.0"
+  },
+  "scripts": {
+    "build": "rm -rf build && tsc -b --force",
+    "dev": "tsc -b -w --preserveWatchOutput",
+    "test": "NODE_ENV=test mocha test",
+    "test-cover": "nyc --reporter=lcov --reporter=text-summary pnpm test"
+  },
+  "engines": {
+    "node": ">=22.3.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

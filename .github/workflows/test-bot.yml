@@ -1,0 +1,46 @@
+name: Testing (bot)
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - .github/workflows/test-bot.yml
+      - packages/bot/src/**
+      - packages/bot/test/**
+      - pnpm-lock.yaml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: 'node_modules'
+          key: deps-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            deps-
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run tests
+        run: pnpm test-cover
+        working-directory: packages/bot
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: packages/bot/coverage/lcov.info
+          flags: bot
+          name: bot.${{ github.event.number }}
