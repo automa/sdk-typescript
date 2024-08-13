@@ -1,6 +1,6 @@
 {
   "name": "@automa/bot",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Bot helpers for Automa",
   "main": "build/index.js",
   "types": "build/index.d.ts",

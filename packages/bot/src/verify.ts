@@ -14,11 +14,13 @@ export const verifyWebhook = <P>(
     return false;
   }
 
-  let hmac = createHmac('sha256', secret);
-  hmac = hmac.update(JSON.stringify(payload));
+  const hmac = generateWebhookSignature(secret, payload);
 
-  const digest = Buffer.from(hmac.digest('hex'), 'utf8');
+  const digest = Buffer.from(hmac, 'utf8');
   const checksum = Buffer.from(signature, 'utf8');
 
   return checksum.length === digest.length && timingSafeEqual(digest, checksum);
 };
+
+export const generateWebhookSignature = <P>(secret: string, payload: P) =>
+  createHmac('sha256', secret).update(JSON.stringify(payload)).digest('hex');
