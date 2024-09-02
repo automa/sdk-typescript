@@ -20,7 +20,8 @@
   ],
   "dependencies": {
     "axios": "~1.7.4",
-    "tar": "~7.4.3"
+    "tar": "~7.4.3",
+    "zx": "~8.1.5"
   },
   "scripts": {
     "build": "rm -rf build && tsc -b --force",

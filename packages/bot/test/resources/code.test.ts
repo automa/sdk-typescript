@@ -4,13 +4,16 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  unlinkSync,
+  writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
 
 import { assert } from 'chai';
 import sinon, { SinonStub } from 'sinon';
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import { c as createTar } from 'tar';
+import { $ } from 'zx';
 
 import { Automa } from '../../src';
 
@@ -145,6 +148,127 @@ suite('code', () => {
           readFileSync(`${task}/.git/automa_proposal_token`, 'utf8'),
           'ghijkl',
         );
+      });
+
+      suite('propose', () => {
+        setup(async () => {
+          axiosStub.resolves({ data: { id: 1 } });
+
+          await $({ cwd: task })`git init`;
+          await $({ cwd: task })`git add .`;
+          await $({ cwd: task })`git config user.name Tmp`;
+          await $({ cwd: task })`git config user.email tmp@tmp.com`;
+          await $({ cwd: task })`git commit -m "Initial commit"`;
+
+          writeFileSync(`${task}/README.md`, 'Content\n');
+        });
+
+        suite('with no proposal token stored', () => {
+          let err: Error;
+
+          setup(async () => {
+            unlinkSync(`${task}/.git/automa_proposal_token`);
+
+            try {
+              await automa.code.propose({
+                task: { id: 28, token: 'abcdef' },
+              });
+            } catch (error: any) {
+              err = error;
+            }
+          });
+
+          test('throws error', async () => {
+            assert.equal(
+              err.message,
+              'Failed to read the stored proposal token',
+            );
+          });
+
+          test('should not hit the api', () => {
+            assert.equal(axiosStub.callCount, 1);
+          });
+        });
+
+        suite('invalid proposal token', () => {
+          let err: Error;
+
+          setup(async () => {
+            axiosStub.rejects(
+              new AxiosError('Wrong proposal token provided', '403'),
+            );
+
+            try {
+              await automa.code.propose({
+                task: { id: 28, token: 'abcdef' },
+              });
+            } catch (error: any) {
+              err = error;
+            }
+          });
+
+          test('throws error', async () => {
+            assert.equal(err.message, 'Wrong proposal token provided');
+          });
+
+          test('should hit the api', () => {
+            assert.equal(axiosStub.callCount, 2);
+            assert.deepEqual(axiosStub.secondCall.args, [
+              {
+                baseURL: 'http://localhost:8080',
+                method: 'POST',
+                url: '/code/propose',
+                data: {
+                  proposal: {
+                    diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
+                    token: 'ghijkl',
+                  },
+                  task: { id: 28, token: 'abcdef' },
+                },
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+              },
+            ]);
+          });
+        });
+
+        suite('valid', () => {
+          let response: AxiosResponse;
+
+          setup(async () => {
+            response = await automa.code.propose({
+              task: { id: 28, token: 'abcdef' },
+            });
+          });
+
+          test('return the response', async () => {
+            assert.deepEqual(response.data, { id: 1 });
+          });
+
+          test('should hit the api', () => {
+            assert.equal(axiosStub.callCount, 2);
+            assert.deepEqual(axiosStub.secondCall.args, [
+              {
+                baseURL: 'http://localhost:8080',
+                method: 'POST',
+                url: '/code/propose',
+                data: {
+                  proposal: {
+                    diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
+                    token: 'ghijkl',
+                  },
+                  task: { id: 28, token: 'abcdef' },
+                },
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+              },
+            ]);
+          });
+        });
       });
     });
   });
