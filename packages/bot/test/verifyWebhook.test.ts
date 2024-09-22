@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 
-import { verifyWebhook } from '../src/verify';
+import { verifyWebhook } from '../src/webhook';
 
 suite('verifyWebhook', () => {
   test('returns false if secret is not a string', () => {
