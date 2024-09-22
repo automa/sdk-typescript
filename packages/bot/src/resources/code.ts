@@ -5,6 +5,7 @@ import { pipeline } from 'node:stream/promises';
 import { x as extract } from 'tar';
 import { $ } from 'zx';
 
+import * as Core from '../core';
 import { APIResource } from '../resource';
 
 import { Task } from './shared';
@@ -21,14 +22,20 @@ export class Code extends APIResource {
   /**
    * Downloads code for a task
    * @param body Task to download code for
+   * @param options Request options
    * @returns Path to the downloaded code
    */
-  async download(body: CodeDownloadParams) {
+  async download(
+    body: CodeDownloadParams,
+    options?: Core.RequestOptions<CodeDownloadParams>,
+  ) {
     const response = await this._client.post<Readable, CodeDownloadParams>(
       '/code/download',
       body,
       {
+        ...options,
         headers: {
+          ...options?.headers,
           Accept: 'application/gzip',
         },
         responseType: 'stream',
@@ -57,9 +64,13 @@ export class Code extends APIResource {
    * @param body.task Task to propose code changes for
    * @param body.proposal Proposal details
    * @param body.proposal.message Optional commit message for the proposal
+   * @param options Request options
    * @returns Proposal that was created
    */
-  async propose(body: CodeProposeParams) {
+  async propose(
+    body: CodeProposeParams,
+    options?: Core.RequestOptions<CodeProposeRequestParams>,
+  ) {
     const folder = this.path(body.task);
     let token: string | undefined;
 
@@ -75,23 +86,18 @@ export class Code extends APIResource {
     // TODO: Use programmatic git instead of system git
     const { stdout } = await $({ cwd: folder })`git diff`;
 
-    return this._client.post<
-      void,
-      CodeDownloadParams & {
+    return this._client.post<void, CodeProposeRequestParams>(
+      '/code/propose',
+      {
+        ...body,
         proposal: {
-          token: string;
-          diff: string;
-          message?: string;
-        };
-      }
-    >('/code/propose', {
-      ...body,
-      proposal: {
-        ...body.proposal,
-        token,
-        diff: stdout,
+          ...body.proposal,
+          token,
+          diff: stdout,
+        },
       },
-    });
+      options,
+    );
   }
 
   private path(task: Pick<Task, 'id'>) {
@@ -105,6 +111,14 @@ export interface CodeCleanupParams {
 
 export interface CodeDownloadParams {
   task: Pick<Task, 'id' | 'token'>;
+}
+
+interface CodeProposeRequestParams extends CodeDownloadParams {
+  proposal: {
+    token: string;
+    diff: string;
+    message?: string;
+  };
 }
 
 export interface CodeProposeParams extends CodeDownloadParams {
