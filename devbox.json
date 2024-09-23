@@ -1,0 +1,6 @@
+{
+  "packages": ["nodejs@20"],
+  "env": {
+    "DEVBOX_COREPACK_ENABLED": "true"
+  }
+}

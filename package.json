@@ -10,8 +10,9 @@
     "prepare": "husky install"
   },
   "engines": {
-    "node": ">=22.3.0"
+    "node": ">=20.17.0"
   },
+  "packageManager": "pnpm@9.11.0",
   "devDependencies": {
     "@types/chai": "~4.3.3",
     "@types/mocha": "~9.1.1",
@@ -23,7 +24,7 @@
     "eslint": "~8.38.0",
     "eslint-config-prettier": "~9.0.0",
     "eslint-import-resolver-typescript": "~3.5.5",
-    "eslint-plugin-import": "~2.27.5",
+    "eslint-plugin-import": "~2.29.1",
     "eslint-plugin-mocha": "~10.1.0",
     "eslint-plugin-prettier": "~5.0.0",
     "eslint-plugin-simple-import-sort": "~12.1.0",

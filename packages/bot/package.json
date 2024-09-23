@@ -1,6 +1,6 @@
 {
   "name": "@automa/bot",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Bot helpers for Automa",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -19,7 +19,9 @@
     "automa"
   ],
   "dependencies": {
-    "@opentelemetry/api": "^1.8.0"
+    "axios": "~1.7.4",
+    "tar": "~7.4.3",
+    "zx": "~8.1.5"
   },
   "scripts": {
     "build": "rm -rf build && tsc -b --force",
@@ -28,7 +30,7 @@
     "test-cover": "nyc --reporter=lcov --reporter=text-summary pnpm test"
   },
   "engines": {
-    "node": ">=22.3.0"
+    "node": ">=20.17.0"
   },
   "publishConfig": {
     "access": "public"
