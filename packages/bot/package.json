@@ -1,6 +1,6 @@
 {
   "name": "@automa/bot",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Bot helpers for Automa",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -19,9 +19,9 @@
     "automa"
   ],
   "dependencies": {
-    "axios": "~1.7.4",
-    "tar": "~7.4.3",
-    "zx": "~8.1.5"
+    "axios": "^1.8.2",
+    "tar": "^7.4.3",
+    "zx": "^8.1.5"
   },
   "scripts": {
     "build": "rm -rf build && tsc -b --force",
