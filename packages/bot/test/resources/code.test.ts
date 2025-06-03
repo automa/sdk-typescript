@@ -16,6 +16,7 @@ import { c as createTar } from 'tar';
 import { $ } from 'zx';
 
 import { Automa } from '../../src';
+import { CodeFolder } from '../../src/resources/code';
 
 suite('code', () => {
   let automa: Automa, axiosStub: SinonStub;
@@ -46,7 +47,7 @@ suite('code', () => {
   });
 
   suite('download', () => {
-    let folder: string;
+    let folder: CodeFolder;
 
     suite('invalid token', () => {
       let err: Error;
@@ -123,7 +124,7 @@ suite('code', () => {
       });
 
       test('returns path to downloaded code', () => {
-        assert.equal(folder, task);
+        assert.equal(folder.path, task);
       });
 
       test('should hit the api', () => {
@@ -165,8 +166,6 @@ suite('code', () => {
           await $({ cwd: task })`git config user.name Tmp`;
           await $({ cwd: task })`git config user.email tmp@tmp.com`;
           await $({ cwd: task })`git commit -m "Initial commit"`;
-
-          writeFileSync(`${task}/README.md`, 'Content\n');
         });
 
         suite('with no proposal token stored', () => {
@@ -205,6 +204,8 @@ suite('code', () => {
             );
 
             try {
+              writeFileSync(`${task}/README.md`, 'Content\n');
+
               await automa.code.propose({
                 task: { id: 28, token: 'abcdef' },
               });
@@ -244,6 +245,8 @@ suite('code', () => {
           let response: AxiosResponse;
 
           setup(async () => {
+            writeFileSync(`${task}/README.md`, 'Content\n');
+
             response = await automa.code.propose({
               task: { id: 28, token: 'abcdef' },
             });
@@ -263,6 +266,46 @@ suite('code', () => {
                 data: {
                   proposal: {
                     diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
+                    token: 'ghijkl',
+                  },
+                  task: { id: 28, token: 'abcdef' },
+                },
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+              },
+            ]);
+          });
+        });
+
+        suite('with added files', () => {
+          let response: AxiosResponse;
+
+          setup(async () => {
+            writeFileSync(`${task}/NEW.md`, 'Content\n');
+
+            await folder.add('NEW.md');
+
+            response = await automa.code.propose({
+              task: { id: 28, token: 'abcdef' },
+            });
+          });
+
+          test('return the response', async () => {
+            assert.deepEqual(response.data, { id: 1 });
+          });
+
+          test('should hit the api', () => {
+            assert.equal(axiosStub.callCount, 2);
+            assert.deepEqual(axiosStub.secondCall.args, [
+              {
+                baseURL: 'http://localhost:8080',
+                method: 'POST',
+                url: '/code/propose',
+                data: {
+                  proposal: {
+                    diff: 'diff --git a/NEW.md b/NEW.md\nnew file mode 100644\nindex 0000000..39c9f36\n--- /dev/null\n+++ b/NEW.md\n@@ -0,0 +1 @@\n+Content\n',
                     token: 'ghijkl',
                   },
                   task: { id: 28, token: 'abcdef' },

@@ -10,6 +10,27 @@ import { APIResource } from '../core/resource';
 
 import { Task } from './shared';
 
+// TODO: Use programmatic git instead of git command
+const get_diff = async (path: string) => {
+  const { stdout } = await $({ cwd: path })`git diff`;
+
+  return stdout;
+};
+
+export class CodeFolder {
+  path: string;
+
+  constructor(path: string) {
+    this.path = path;
+  }
+
+  async add(paths: string | string[]) {
+    await $({ cwd: this.path })`git add -N ${
+      Array.isArray(paths) ? paths : [paths]
+    }`;
+  }
+}
+
 export class Code extends APIResource {
   /**
    * Cleans up the downloaded code for a task
@@ -42,20 +63,20 @@ export class Code extends APIResource {
       },
     );
 
-    const folder = this.path(body.task);
+    const path = this.path(body.task);
 
-    await rm(folder, { recursive: true, force: true });
-    await mkdir(folder, { recursive: true });
+    await rm(path, { recursive: true, force: true });
+    await mkdir(path, { recursive: true });
 
-    await pipeline(response.data, extract({ cwd: folder }));
+    await pipeline(response.data, extract({ cwd: path }));
 
     // Save the proposal token for later use
     await writeFile(
-      `${folder}/.git/automa_proposal_token`,
+      `${path}/.git/automa_proposal_token`,
       response.headers['x-automa-proposal-token'],
     );
 
-    return folder;
+    return new CodeFolder(path);
   }
 
   /**
@@ -71,20 +92,19 @@ export class Code extends APIResource {
     body: CodeProposeParams,
     options?: RequestOptions<CodeProposeRequestParams>,
   ) {
-    const folder = this.path(body.task);
+    const path = this.path(body.task);
     let token: string | undefined;
 
     try {
       // Read the proposal token from the downloaded code
-      token = await readFile(`${folder}/.git/automa_proposal_token`, 'utf8');
+      token = await readFile(`${path}/.git/automa_proposal_token`, 'utf8');
     } catch (e) {}
 
     if (!token) {
       throw new Error('Failed to read the stored proposal token');
     }
 
-    // TODO: Use programmatic git instead of system git
-    const { stdout } = await $({ cwd: folder })`git diff`;
+    const diff = await get_diff(path);
 
     return this._client.post<void, CodeProposeRequestParams>(
       '/code/propose',
@@ -93,7 +113,7 @@ export class Code extends APIResource {
         proposal: {
           ...body.proposal,
           token,
-          diff: stdout,
+          diff,
         },
       },
       options,
