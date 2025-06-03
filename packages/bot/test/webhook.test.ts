@@ -46,8 +46,6 @@ suite('verifyWebhook', () => {
   });
 
   test('returns true if signature is correct', () => {
-    console.log(generateWebhookSignature('atma_whsec_secret', payload));
-
     const result = verifyWebhook(
       'atma_whsec_secret',
       'v1,ybgUDC8L+jRv0kjS5fC8QS6J2pFs9vGzWail0mt3DOg=',
