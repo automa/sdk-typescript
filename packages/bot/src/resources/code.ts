@@ -141,12 +141,14 @@ interface CodeProposeRequestParams extends CodeDownloadParams {
   proposal: {
     token: string;
     diff: string;
-    message?: string;
+    title?: string;
+    body?: string;
   };
 }
 
 export interface CodeProposeParams extends CodeDownloadParams {
   proposal?: {
-    message?: string;
+    title?: string;
+    body?: string;
   };
 }
