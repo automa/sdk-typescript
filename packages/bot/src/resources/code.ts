@@ -29,6 +29,10 @@ export class CodeFolder {
       Array.isArray(paths) ? paths : [paths]
     }`;
   }
+
+  async addAll() {
+    await $({ cwd: this.path })`git add -N .`;
+  }
 }
 
 export class Code extends APIResource {
