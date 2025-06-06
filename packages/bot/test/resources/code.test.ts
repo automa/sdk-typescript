@@ -318,6 +318,46 @@ suite('code', () => {
             ]);
           });
         });
+
+        suite('with added files using addAll', () => {
+          let response: AxiosResponse;
+
+          setup(async () => {
+            writeFileSync(`${task}/NEW.md`, 'Content\n');
+
+            await folder.addAll();
+
+            response = await automa.code.propose({
+              task: { id: 28, token: 'abcdef' },
+            });
+          });
+
+          test('return the response', async () => {
+            assert.deepEqual(response.data, { id: 1 });
+          });
+
+          test('should hit the api', () => {
+            assert.equal(axiosStub.callCount, 2);
+            assert.deepEqual(axiosStub.secondCall.args, [
+              {
+                baseURL: 'http://localhost:8080',
+                method: 'POST',
+                url: '/code/propose',
+                data: {
+                  proposal: {
+                    diff: 'diff --git a/NEW.md b/NEW.md\nnew file mode 100644\nindex 0000000..39c9f36\n--- /dev/null\n+++ b/NEW.md\n@@ -0,0 +1 @@\n+Content\n',
+                    token: 'ghijkl',
+                  },
+                  task: { id: 28, token: 'abcdef' },
+                },
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+              },
+            ]);
+          });
+        });
       });
     });
   });

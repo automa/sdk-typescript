@@ -8,3 +8,4 @@ export {
 } from './resources';
 
 export * from './webhook';
+export * from './types';

@@ -5,10 +5,10 @@ import { pipeline } from 'node:stream/promises';
 import { x as extract } from 'tar';
 import { $ } from 'zx';
 
+import { Task } from '../types';
+
 import { RequestOptions } from '../baseClient';
 import { APIResource } from '../core/resource';
-
-import { Task } from './shared';
 
 // TODO: Use programmatic git instead of git command
 const get_diff = async (path: string) => {
@@ -28,6 +28,10 @@ export class CodeFolder {
     await $({ cwd: this.path })`git add -N ${
       Array.isArray(paths) ? paths : [paths]
     }`;
+  }
+
+  async addAll() {
+    await $({ cwd: this.path })`git add -N .`;
   }
 }
 
@@ -137,12 +141,14 @@ interface CodeProposeRequestParams extends CodeDownloadParams {
   proposal: {
     token: string;
     diff: string;
-    message?: string;
+    title?: string;
+    body?: string;
   };
 }
 
 export interface CodeProposeParams extends CodeDownloadParams {
   proposal?: {
-    message?: string;
+    title?: string;
+    body?: string;
   };
 }
