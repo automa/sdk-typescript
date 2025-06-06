@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "format": "prettier --write .",
+    "format": "prettier --write . --log-level warn",
     "format-check": "prettier --check .",
     "lint": "eslint .",
     "lint-fix": "eslint --fix .",

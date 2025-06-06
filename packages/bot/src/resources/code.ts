@@ -5,10 +5,10 @@ import { pipeline } from 'node:stream/promises';
 import { x as extract } from 'tar';
 import { $ } from 'zx';
 
+import { Task } from '../types';
+
 import { RequestOptions } from '../baseClient';
 import { APIResource } from '../core/resource';
-
-import { Task } from './shared';
 
 // TODO: Use programmatic git instead of git command
 const get_diff = async (path: string) => {
