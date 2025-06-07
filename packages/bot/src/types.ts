@@ -14,13 +14,13 @@ export type Task = {
 };
 
 export type Repo = {
-  id: string;
+  id: number;
   name: string;
   is_private: boolean;
 };
 
 export type Org = {
-  id: string;
+  id: number;
   name: string;
   provider_type: 'github' | 'gitlab';
 };
