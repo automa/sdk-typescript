@@ -151,4 +151,7 @@ export interface CodeProposeParams extends CodeDownloadParams {
     title?: string;
     body?: string;
   };
+  metadata?: Record<string, unknown> & {
+    cost?: number;
+  };
 }

@@ -358,6 +358,96 @@ suite('code', () => {
             ]);
           });
         });
+
+        suite('with proposal properties', () => {
+          let response: AxiosResponse;
+
+          setup(async () => {
+            writeFileSync(`${task}/README.md`, 'Content\n');
+
+            response = await automa.code.propose({
+              task: { id: 28, token: 'abcdef' },
+              proposal: {
+                title: 'PR Title',
+                body: 'PR Body',
+              },
+            });
+          });
+
+          test('return the response', async () => {
+            assert.deepEqual(response.data, { id: 1 });
+          });
+
+          test('should hit the api', () => {
+            assert.equal(axiosStub.callCount, 2);
+            assert.deepEqual(axiosStub.secondCall.args, [
+              {
+                baseURL: 'http://localhost:8080',
+                method: 'POST',
+                url: '/code/propose',
+                data: {
+                  proposal: {
+                    title: 'PR Title',
+                    body: 'PR Body',
+                    diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
+                    token: 'ghijkl',
+                  },
+                  task: { id: 28, token: 'abcdef' },
+                },
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+              },
+            ]);
+          });
+        });
+
+        suite('with metadata', () => {
+          let response: AxiosResponse;
+
+          setup(async () => {
+            writeFileSync(`${task}/README.md`, 'Content\n');
+
+            response = await automa.code.propose({
+              task: { id: 28, token: 'abcdef' },
+              metadata: {
+                cost: 0.1,
+                random: 'yes',
+              },
+            });
+          });
+
+          test('return the response', async () => {
+            assert.deepEqual(response.data, { id: 1 });
+          });
+
+          test('should hit the api', () => {
+            assert.equal(axiosStub.callCount, 2);
+            assert.deepEqual(axiosStub.secondCall.args, [
+              {
+                baseURL: 'http://localhost:8080',
+                method: 'POST',
+                url: '/code/propose',
+                data: {
+                  proposal: {
+                    diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
+                    token: 'ghijkl',
+                  },
+                  task: { id: 28, token: 'abcdef' },
+                  metadata: {
+                    cost: 0.1,
+                    random: 'yes',
+                  },
+                },
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+              },
+            ]);
+          });
+        });
       });
     });
   });
