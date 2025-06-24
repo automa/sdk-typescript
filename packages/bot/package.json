@@ -5,7 +5,7 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "module": "src/index.ts",
-  "author": "Automa, Inc. <engineering@automa.app>",
+  "author": "Sunkara, Inc. <engineering@automa.app>",
   "homepage": "https://automa.app",
   "repository": {
     "type": "git",
