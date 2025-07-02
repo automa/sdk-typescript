@@ -2,6 +2,12 @@
 
 ### Unreleased
 
+### 0.2.4
+
+#### Added
+
+- Added more webhook events to `WebhookPayload` type
+
 ### 0.2.3
 
 #### Added
