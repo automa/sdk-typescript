@@ -1,6 +1,6 @@
 {
   "name": "@automa/bot",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Bot helpers for Automa",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -20,6 +20,7 @@
   ],
   "dependencies": {
     "axios": "^1.8.2",
+    "json-stable-stringify": "^1.2.0",
     "tar": "^7.4.3",
     "zx": "^8.1.5"
   },

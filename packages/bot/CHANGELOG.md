@@ -2,6 +2,12 @@
 
 ### Unreleased
 
+### 0.2.5
+
+#### Bug fixes
+
+- Fixed issues with webhook verification
+
 ### 0.2.4
 
 #### Added
