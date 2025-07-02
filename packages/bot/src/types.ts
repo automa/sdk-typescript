@@ -81,3 +81,9 @@ export type WebhookPayload = {
       data: never;
     }
 );
+
+// Helper to get webhook data type for event
+export type WebhookEventData<T extends WebhookEventType> = Extract<
+  WebhookPayload,
+  { type: T }
+>['data'];
