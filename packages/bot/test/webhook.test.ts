@@ -48,7 +48,7 @@ suite('verifyWebhook', () => {
   test('returns true if signature is correct', () => {
     const result = verifyWebhook(
       'atma_whsec_secret',
-      'v1,ybgUDC8L+jRv0kjS5fC8QS6J2pFs9vGzWail0mt3DOg=',
+      'v1,ZUIY9lvvPeYC8xF/S+Bmr3wn2o+zoMIHo+7lyigMLBw=',
       payload,
     );
 
@@ -58,7 +58,7 @@ suite('verifyWebhook', () => {
   test('returns true if second signature is correct', () => {
     const result = verifyWebhook(
       'atma_whsec_secret',
-      'bad_signature v1,ybgUDC8L+jRv0kjS5fC8QS6J2pFs9vGzWail0mt3DOg=',
+      'bad_signature v1,ZUIY9lvvPeYC8xF/S+Bmr3wn2o+zoMIHo+7lyigMLBw=',
       payload,
     );
 

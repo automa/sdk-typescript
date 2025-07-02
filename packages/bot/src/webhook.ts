@@ -1,5 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
+import stableStringify from 'json-stable-stringify';
+
 type Payload<P> = {
   id: string;
   timestamp: string;
@@ -45,7 +47,7 @@ export const generateWebhookSignature = <P>(
   const timestamp = Math.floor(new Date(payload.timestamp).getTime() / 1000);
 
   const sig = createHmac('sha256', secret.slice(11))
-    .update(`${payload.id}.${timestamp}.${JSON.stringify(payload)}`)
+    .update(`${payload.id}.${timestamp}.${stableStringify(payload)}`)
     .digest('base64');
 
   return `v1,${sig}`;
