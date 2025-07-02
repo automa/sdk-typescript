@@ -5,7 +5,7 @@ import { pipeline } from 'node:stream/promises';
 import { x as extract } from 'tar';
 import { $ } from 'zx';
 
-import { Task } from '../types';
+import { Task, TaskForCode } from '../types';
 
 import { RequestOptions } from '../baseClient';
 import { APIResource } from '../core/resource';
@@ -134,7 +134,7 @@ export interface CodeCleanupParams {
 }
 
 export interface CodeDownloadParams {
-  task: Pick<Task, 'id' | 'token'>;
+  task: Pick<TaskForCode, 'id' | 'token'>;
 }
 
 interface CodeProposeRequestParams extends CodeDownloadParams {
