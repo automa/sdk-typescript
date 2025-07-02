@@ -2,16 +2,12 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import stableStringify from 'json-stable-stringify';
 
-type Payload<P> = {
-  id: string;
-  timestamp: string;
-  data: P;
-};
+import { WebhookPayload } from './types';
 
-export const verifyWebhook = <P>(
+export const verifyWebhook = (
   secret: string,
   signature: string,
-  payload: Payload<P>,
+  payload: WebhookPayload,
 ) => {
   if (
     !secret ||
@@ -40,9 +36,9 @@ export const verifyWebhook = <P>(
   });
 };
 
-export const generateWebhookSignature = <P>(
+export const generateWebhookSignature = (
   secret: string,
-  payload: Payload<P>,
+  payload: WebhookPayload,
 ) => {
   const timestamp = Math.floor(new Date(payload.timestamp).getTime() / 1000);
 

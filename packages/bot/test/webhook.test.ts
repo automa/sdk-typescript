@@ -1,12 +1,13 @@
 import { assert } from 'chai';
 
+import { WebhookPayload } from '../src/types';
 import { generateWebhookSignature, verifyWebhook } from '../src/webhook';
 
 const payload = {
   id: '1',
   timestamp: '2023-10-01T00:00:00Z',
   data: {},
-};
+} as WebhookPayload;
 
 suite('verifyWebhook', () => {
   test('returns false if secret is not a string', () => {
