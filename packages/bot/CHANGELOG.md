@@ -2,6 +2,12 @@
 
 ### Unreleased
 
+### 0.2.8
+
+#### Added
+
+- Added `WebhookEventData` type to get data type for an event
+
 ### 0.2.7
 
 #### Bug fixes
