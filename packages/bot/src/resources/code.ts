@@ -61,18 +61,44 @@ export class Code extends APIResource {
         ...options,
         headers: {
           ...options?.headers,
-          Accept: 'application/gzip',
         },
         responseType: 'stream',
       },
     );
 
     const path = this.path(body.task);
+    const contentType = response.headers['content-type'];
 
     await rm(path, { recursive: true, force: true });
     await mkdir(path, { recursive: true });
 
-    await pipeline(response.data, extract({ cwd: path }));
+    if (contentType?.startsWith('application/json')) {
+      const chunks: Buffer[] = [];
+
+      for await (const chunk of response.data) {
+        chunks.push(chunk);
+      }
+
+      const data = JSON.parse(Buffer.concat(chunks).toString());
+
+      await $({ cwd: path })`git clone --depth=1 ${data.url} .`;
+
+      // Note down the base commit
+      const { stdout: baseCommit } = await $({ cwd: path })`git rev-parse HEAD`;
+
+      await writeFile(
+        `${path}/.git/automa_proposal_base_commit`,
+        baseCommit.trim(),
+      );
+    } else if (contentType?.startsWith('application/gzip')) {
+      await pipeline(response.data, extract({ cwd: path }));
+    } else {
+      await rm(path, { recursive: true, force: true });
+
+      throw new Error(
+        `Unexpected content type: ${contentType} while downloading code.`,
+      );
+    }
 
     // Save the proposal token for later use
     await writeFile(
@@ -97,11 +123,18 @@ export class Code extends APIResource {
     options?: RequestOptions<CodeProposeRequestParams>,
   ) {
     const path = this.path(body.task);
-    let token: string | undefined;
+    let token: string | undefined, baseCommit: string | undefined;
 
     try {
       // Read the proposal token from the downloaded code
       token = await readFile(`${path}/.git/automa_proposal_token`, 'utf8');
+    } catch (e) {}
+
+    try {
+      baseCommit = await readFile(
+        `${path}/.git/automa_proposal_base_commit`,
+        'utf8',
+      );
     } catch (e) {}
 
     if (!token) {
@@ -118,6 +151,7 @@ export class Code extends APIResource {
           ...body.proposal,
           token,
           diff,
+          ...(baseCommit ? { base_commit: baseCommit } : {}),
         },
       },
       options,
