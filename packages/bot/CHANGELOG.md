@@ -2,6 +2,12 @@
 
 ### Unreleased
 
+### 0.3.0
+
+#### Added
+
+- Support direct download method for code
+
 ### 0.2.8
 
 #### Added

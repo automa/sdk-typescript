@@ -8,6 +8,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
+import { Readable } from 'node:stream';
 
 import { assert } from 'chai';
 import sinon, { SinonStub } from 'sinon';
@@ -85,7 +86,7 @@ suite('code', () => {
             url: '/code/download',
             data: { task: { id: 28, token: 'invalid' } },
             headers: {
-              Accept: 'application/gzip',
+              Accept: 'application/json',
               'Content-Type': 'application/json',
             },
             responseType: 'stream',
@@ -98,7 +99,54 @@ suite('code', () => {
       });
     });
 
-    suite('valid token', () => {
+    suite('with download response missing content-type', () => {
+      let err: Error;
+
+      setup(async () => {
+        axiosStub.resolves({
+          data: Readable.from([Buffer.from('{}')]),
+          headers: {},
+        });
+
+        try {
+          await automa.code.download({
+            task: { id: 28, token: 'abcdef' },
+          });
+        } catch (error: any) {
+          err = error;
+        }
+      });
+
+      test('throws error', () => {
+        assert.equal(
+          err.message,
+          'Unexpected content type: undefined while downloading code.',
+        );
+      });
+
+      test('should hit the api', () => {
+        assert.equal(axiosStub.callCount, 1);
+        assert.deepEqual(axiosStub.firstCall.args, [
+          {
+            baseURL: 'http://localhost:8080',
+            method: 'POST',
+            url: '/code/download',
+            data: { task: { id: 28, token: 'abcdef' } },
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            responseType: 'stream',
+          },
+        ]);
+      });
+
+      test('does not download code', () => {
+        assert.isFalse(existsSync(task));
+      });
+    });
+
+    suite('valid token for proxy download', () => {
       let fixture: string;
 
       setup(async () => {
@@ -109,6 +157,7 @@ suite('code', () => {
         axiosStub.resolves({
           data: createTar({ cwd: fixture }, ['.']),
           headers: {
+            'content-type': 'application/gzip',
             'x-automa-proposal-token': 'ghijkl',
           },
         });
@@ -136,7 +185,7 @@ suite('code', () => {
             url: '/code/download',
             data: { task: { id: 28, token: 'abcdef' } },
             headers: {
-              Accept: 'application/gzip',
+              Accept: 'application/json',
               'Content-Type': 'application/json',
             },
             responseType: 'stream',
@@ -439,6 +488,128 @@ suite('code', () => {
                     cost: 0.1,
                     random: 'yes',
                   },
+                },
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+              },
+            ]);
+          });
+        });
+      });
+    });
+
+    suite('valid token for direct download', () => {
+      let fixture: string;
+
+      setup(async () => {
+        // We can't track git folders in git, so we need to create a git folder
+        fixture = join(__dirname, '..', 'fixtures', 'download');
+        mkdirSync(join(fixture, '.git'));
+
+        const gitRepo = join(__dirname, '..', 'fixtures', 'download_git');
+
+        axiosStub.resolves({
+          data: Readable.from([
+            Buffer.from(
+              JSON.stringify({
+                type: 'direct',
+                url: `file://${gitRepo}`,
+              }),
+            ),
+          ]),
+          headers: {
+            'content-type': 'application/json',
+            'x-automa-proposal-token': 'ghijkl',
+          },
+        });
+
+        folder = await automa.code.download({
+          task: { id: 28, token: 'abcdef' },
+        });
+      });
+
+      teardown(() => {
+        // Delete the git folder that was created
+        rmSync(join(fixture, '.git'), { recursive: true, force: true });
+      });
+
+      test('returns path to downloaded code', () => {
+        assert.equal(folder.path, task);
+      });
+
+      test('should hit the api', () => {
+        assert.equal(axiosStub.callCount, 1);
+        assert.deepEqual(axiosStub.firstCall.args, [
+          {
+            baseURL: 'http://localhost:8080',
+            method: 'POST',
+            url: '/code/download',
+            data: { task: { id: 28, token: 'abcdef' } },
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            responseType: 'stream',
+          },
+        ]);
+      });
+
+      test('clones the repo', () => {
+        assert.isTrue(existsSync(task));
+
+        assert.deepEqual(readdirSync(task), ['.git', 'README.md']);
+      });
+
+      test('saves proposal token', () => {
+        assert.equal(
+          readFileSync(`${task}/.git/automa_proposal_token`, 'utf8'),
+          'ghijkl',
+        );
+      });
+
+      test('saves base commit', () => {
+        assert.equal(
+          readFileSync(`${task}/.git/automa_proposal_base_commit`, 'utf8'),
+          'cc3f46ae7fdf71747b66b3e4272c0e5fe290d116',
+        );
+      });
+
+      suite('propose', () => {
+        setup(async () => {
+          axiosStub.resolves({ data: { id: 1 } });
+        });
+
+        suite('valid', () => {
+          let response: AxiosResponse;
+
+          setup(async () => {
+            writeFileSync(`${task}/README.md`, 'Content\n');
+
+            response = await automa.code.propose({
+              task: { id: 28, token: 'abcdef' },
+            });
+          });
+
+          test('return the response', async () => {
+            assert.deepEqual(response.data, { id: 1 });
+          });
+
+          test('should hit the api', () => {
+            assert.equal(axiosStub.callCount, 2);
+            assert.deepEqual(axiosStub.secondCall.args, [
+              {
+                baseURL: 'http://localhost:8080',
+                method: 'POST',
+                url: '/code/propose',
+                data: {
+                  proposal: {
+                    diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
+                    token: 'ghijkl',
+                    base_commit: 'cc3f46ae7fdf71747b66b3e4272c0e5fe290d116',
+                  },
+                  task: { id: 28, token: 'abcdef' },
                 },
                 headers: {
                   Accept: 'application/json',
