@@ -156,7 +156,7 @@ Parameters:
     - `title` (string): Title of the pull request for the proposal.
     - `body` (string): Description of the pull request for the proposal.
   - `metadata` (object, optional)
-    - `cost` (number): Cost incurred for implementing the task.
+    - `cost_in_cents` (number): Cost (in USD cents) incurred for implementing the task.
 
 ### `code.cleanup`
 
