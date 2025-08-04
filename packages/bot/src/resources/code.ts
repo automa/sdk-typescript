@@ -186,6 +186,6 @@ export interface CodeProposeParams extends CodeDownloadParams {
     body?: string;
   };
   metadata?: Record<string, unknown> & {
-    cost?: number;
+    cost_in_cents?: number;
   };
 }

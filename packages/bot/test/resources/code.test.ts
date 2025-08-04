@@ -461,7 +461,7 @@ suite('code', () => {
             response = await automa.code.propose({
               task: { id: 28, token: 'abcdef' },
               metadata: {
-                cost: 0.1,
+                cost_in_cents: 10,
                 random: 'yes',
               },
             });
@@ -485,7 +485,7 @@ suite('code', () => {
                   },
                   task: { id: 28, token: 'abcdef' },
                   metadata: {
-                    cost: 0.1,
+                    cost_in_cents: 10,
                     random: 'yes',
                   },
                 },
