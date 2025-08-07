@@ -83,7 +83,7 @@ suite('code', () => {
           {
             baseURL: 'http://localhost:8080',
             method: 'POST',
-            url: '/code/download',
+            url: '/bot/code/download',
             data: { task: { id: 28, token: 'invalid' } },
             headers: {
               Accept: 'application/json',
@@ -130,7 +130,7 @@ suite('code', () => {
           {
             baseURL: 'http://localhost:8080',
             method: 'POST',
-            url: '/code/download',
+            url: '/bot/code/download',
             data: { task: { id: 28, token: 'abcdef' } },
             headers: {
               Accept: 'application/json',
@@ -182,7 +182,7 @@ suite('code', () => {
           {
             baseURL: 'http://localhost:8080',
             method: 'POST',
-            url: '/code/download',
+            url: '/bot/code/download',
             data: { task: { id: 28, token: 'abcdef' } },
             headers: {
               Accept: 'application/json',
@@ -273,7 +273,7 @@ suite('code', () => {
               {
                 baseURL: 'http://localhost:8080',
                 method: 'POST',
-                url: '/code/propose',
+                url: '/bot/code/propose',
                 data: {
                   proposal: {
                     diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
@@ -311,7 +311,7 @@ suite('code', () => {
               {
                 baseURL: 'http://localhost:8080',
                 method: 'POST',
-                url: '/code/propose',
+                url: '/bot/code/propose',
                 data: {
                   proposal: {
                     diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
@@ -351,7 +351,7 @@ suite('code', () => {
               {
                 baseURL: 'http://localhost:8080',
                 method: 'POST',
-                url: '/code/propose',
+                url: '/bot/code/propose',
                 data: {
                   proposal: {
                     diff: 'diff --git a/NEW.md b/NEW.md\nnew file mode 100644\nindex 0000000..39c9f36\n--- /dev/null\n+++ b/NEW.md\n@@ -0,0 +1 @@\n+Content\n',
@@ -391,7 +391,7 @@ suite('code', () => {
               {
                 baseURL: 'http://localhost:8080',
                 method: 'POST',
-                url: '/code/propose',
+                url: '/bot/code/propose',
                 data: {
                   proposal: {
                     diff: 'diff --git a/NEW.md b/NEW.md\nnew file mode 100644\nindex 0000000..39c9f36\n--- /dev/null\n+++ b/NEW.md\n@@ -0,0 +1 @@\n+Content\n',
@@ -433,7 +433,7 @@ suite('code', () => {
               {
                 baseURL: 'http://localhost:8080',
                 method: 'POST',
-                url: '/code/propose',
+                url: '/bot/code/propose',
                 data: {
                   proposal: {
                     title: 'PR Title',
@@ -477,7 +477,7 @@ suite('code', () => {
               {
                 baseURL: 'http://localhost:8080',
                 method: 'POST',
-                url: '/code/propose',
+                url: '/bot/code/propose',
                 data: {
                   proposal: {
                     diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
@@ -545,7 +545,7 @@ suite('code', () => {
           {
             baseURL: 'http://localhost:8080',
             method: 'POST',
-            url: '/code/download',
+            url: '/bot/code/download',
             data: { task: { id: 28, token: 'abcdef' } },
             headers: {
               Accept: 'application/json',
@@ -602,7 +602,7 @@ suite('code', () => {
               {
                 baseURL: 'http://localhost:8080',
                 method: 'POST',
-                url: '/code/propose',
+                url: '/bot/code/propose',
                 data: {
                   proposal: {
                     diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
