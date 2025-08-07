@@ -46,7 +46,8 @@ export class Code extends APIResource {
 
   /**
    * Downloads code for a task
-   * @param body Task to download code for
+   * @param body Parameters for downloading code
+   * @param body.task Task to download code for
    * @param options Request options
    * @returns Path to the downloaded code
    */
