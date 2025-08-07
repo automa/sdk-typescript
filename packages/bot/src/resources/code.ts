@@ -55,7 +55,7 @@ export class Code extends APIResource {
     options?: RequestOptions<CodeDownloadParams>,
   ) {
     const response = await this._client.post<Readable, CodeDownloadParams>(
-      '/code/download',
+      '/bot/code/download',
       body,
       {
         ...options,
@@ -144,7 +144,7 @@ export class Code extends APIResource {
     const diff = await get_diff(path);
 
     return this._client.post<void, CodeProposeRequestParams>(
-      '/code/propose',
+      '/bot/code/propose',
       {
         ...body,
         proposal: {
