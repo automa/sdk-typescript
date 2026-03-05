@@ -3,6 +3,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   unlinkSync,
   writeFileSync,
@@ -149,11 +150,17 @@ suite('code', () => {
     suite('valid token for proxy download', () => {
       let fixture: string;
 
-      setup(async () => {
-        // We can't track git folders in git, so we need to create a git folder
+      suiteSetup(() => {
         fixture = join(__dirname, '..', 'fixtures', 'download');
-        mkdirSync(join(fixture, '.git'));
 
+        renameSync(join(fixture, '_git'), join(fixture, '.git'));
+      });
+
+      suiteTeardown(() => {
+        renameSync(join(fixture, '.git'), join(fixture, '_git'));
+      });
+
+      setup(async () => {
         axiosStub.resolves({
           data: createTar({ cwd: fixture }, ['.']),
           headers: {
@@ -165,11 +172,6 @@ suite('code', () => {
         folder = await automa.code.download({
           task: { id: 28, token: 'abcdef' },
         });
-      });
-
-      teardown(() => {
-        // Delete the git folder that was created
-        rmSync(join(fixture, '.git'), { recursive: true, force: true });
       });
 
       test('returns path to downloaded code', () => {
@@ -196,7 +198,7 @@ suite('code', () => {
       test('downloads code', () => {
         assert.isTrue(existsSync(task));
 
-        assert.deepEqual(readdirSync(task), ['.git', 'README.md']);
+        assert.deepEqual(readdirSync(task), ['.git', 'LICENSE', 'README.md']);
       });
 
       test('saves proposal token', () => {
@@ -206,15 +208,17 @@ suite('code', () => {
         );
       });
 
+      test('saves base commit', () => {
+        assert.isFalse(existsSync(`${task}/.git/automa_proposal_base_commit`));
+        assert.equal(
+          readFileSync(`${task}/.git/automa_diff_base_commit`, 'utf8'),
+          '5575f40bc4ead411b690b6f2f09636e3468ef12e',
+        );
+      });
+
       suite('propose', () => {
         setup(async () => {
           axiosStub.resolves({ data: { id: 1 } });
-
-          await $({ cwd: task })`git init`;
-          await $({ cwd: task })`git add .`;
-          await $({ cwd: task })`git config user.name Tmp`;
-          await $({ cwd: task })`git config user.email tmp@tmp.com`;
-          await $({ cwd: task })`git commit -m "Initial commit"`;
         });
 
         suite('with no proposal token stored', () => {
@@ -408,6 +412,51 @@ suite('code', () => {
           });
         });
 
+        suite('with intermediate commits', () => {
+          let response: AxiosResponse;
+
+          setup(async () => {
+            writeFileSync(`${task}/LICENSE`, 'MIT\n');
+
+            await $({ cwd: task })`git add LICENSE`;
+            await $({
+              cwd: task,
+            })`git -c user.name="Tmp" -c user.email="tmp@tmp.com" commit -m "Intermediate commit"`;
+
+            writeFileSync(`${task}/README.md`, 'Content\n');
+
+            response = await automa.code.propose({
+              task: { id: 28, token: 'abcdef' },
+            });
+          });
+
+          test('return the response', async () => {
+            assert.deepEqual(response.data, { id: 1 });
+          });
+
+          test('should hit the api', () => {
+            assert.equal(axiosStub.callCount, 2);
+            assert.deepEqual(axiosStub.secondCall.args, [
+              {
+                baseURL: 'http://localhost:8080',
+                method: 'POST',
+                url: '/bot/code/propose',
+                data: {
+                  proposal: {
+                    diff: 'diff --git a/LICENSE b/LICENSE\nindex e69de29..a22a2da 100644\n--- a/LICENSE\n+++ b/LICENSE\n@@ -0,0 +1 @@\n+MIT\ndiff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
+                    token: 'ghijkl',
+                  },
+                  task: { id: 28, token: 'abcdef' },
+                },
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+              },
+            ]);
+          });
+        });
+
         suite('with proposal properties', () => {
           let response: AxiosResponse;
 
@@ -501,14 +550,8 @@ suite('code', () => {
     });
 
     suite('valid token for direct download', () => {
-      let fixture: string;
-
       setup(async () => {
-        // We can't track git folders in git, so we need to create a git folder
-        fixture = join(__dirname, '..', 'fixtures', 'download');
-        mkdirSync(join(fixture, '.git'));
-
-        const gitRepo = join(__dirname, '..', 'fixtures', 'download_git');
+        const gitRepo = join(__dirname, '..', 'fixtures', 'download', '_git');
 
         axiosStub.resolves({
           data: Readable.from([
@@ -528,11 +571,6 @@ suite('code', () => {
         folder = await automa.code.download({
           task: { id: 28, token: 'abcdef' },
         });
-      });
-
-      teardown(() => {
-        // Delete the git folder that was created
-        rmSync(join(fixture, '.git'), { recursive: true, force: true });
       });
 
       test('returns path to downloaded code', () => {
@@ -559,7 +597,7 @@ suite('code', () => {
       test('clones the repo', () => {
         assert.isTrue(existsSync(task));
 
-        assert.deepEqual(readdirSync(task), ['.git', 'README.md']);
+        assert.deepEqual(readdirSync(task), ['.git', 'LICENSE', 'README.md']);
       });
 
       test('saves proposal token', () => {
@@ -572,8 +610,9 @@ suite('code', () => {
       test('saves base commit', () => {
         assert.equal(
           readFileSync(`${task}/.git/automa_proposal_base_commit`, 'utf8'),
-          'cc3f46ae7fdf71747b66b3e4272c0e5fe290d116',
+          '5575f40bc4ead411b690b6f2f09636e3468ef12e',
         );
+        assert.isFalse(existsSync(`${task}/.git/automa_diff_base_commit`));
       });
 
       suite('propose', () => {
@@ -607,7 +646,7 @@ suite('code', () => {
                   proposal: {
                     diff: 'diff --git a/README.md b/README.md\nindex e69de29..39c9f36 100644\n--- a/README.md\n+++ b/README.md\n@@ -0,0 +1 @@\n+Content\n',
                     token: 'ghijkl',
-                    base_commit: 'cc3f46ae7fdf71747b66b3e4272c0e5fe290d116',
+                    base_commit: '5575f40bc4ead411b690b6f2f09636e3468ef12e',
                   },
                   task: { id: 28, token: 'abcdef' },
                 },

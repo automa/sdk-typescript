@@ -11,8 +11,10 @@ import { RequestOptions } from '../baseClient';
 import { APIResource } from '../core/resource';
 
 // TODO: Use programmatic git instead of git command
-const get_diff = async (path: string) => {
-  const { stdout } = await $({ cwd: path })`git diff`;
+const get_diff = async (path: string, baseCommit?: string) => {
+  const args = baseCommit ? [baseCommit] : [];
+
+  const { stdout } = await $({ cwd: path })`git diff ${args}`;
 
   return stdout;
 };
@@ -46,7 +48,8 @@ export class Code extends APIResource {
 
   /**
    * Downloads code for a task
-   * @param body Task to download code for
+   * @param body Parameters for downloading code
+   * @param body.task Task to download code for
    * @param options Request options
    * @returns Path to the downloaded code
    */
@@ -72,8 +75,17 @@ export class Code extends APIResource {
     await rm(path, { recursive: true, force: true });
     await mkdir(path, { recursive: true });
 
+    const saveBaseCommit = async (type: string) => {
+      const { stdout: baseCommit } = await $({ cwd: path })`git rev-parse HEAD`;
+
+      await writeFile(
+        `${path}/.git/automa_${type}_base_commit`,
+        baseCommit.trim(),
+      );
+    };
+
     if (contentType?.startsWith('application/json')) {
-      const chunks: Buffer[] = [];
+      const chunks = [];
 
       for await (const chunk of response.data) {
         chunks.push(chunk);
@@ -83,15 +95,14 @@ export class Code extends APIResource {
 
       await $({ cwd: path })`git clone --depth=1 ${data.url} .`;
 
-      // Note down the base commit
-      const { stdout: baseCommit } = await $({ cwd: path })`git rev-parse HEAD`;
-
-      await writeFile(
-        `${path}/.git/automa_proposal_base_commit`,
-        baseCommit.trim(),
-      );
+      // Note down the base commit to send in proposal
+      await saveBaseCommit('proposal');
     } else if (contentType?.startsWith('application/gzip')) {
+      // @ts-ignore
       await pipeline(response.data, extract({ cwd: path }));
+
+      // Note down the base commit to be used in generating diff
+      await saveBaseCommit('diff');
     } else {
       await rm(path, { recursive: true, force: true });
 
@@ -123,7 +134,8 @@ export class Code extends APIResource {
     options?: RequestOptions<CodeProposeRequestParams>,
   ) {
     const path = this.path(body.task);
-    let token: string | undefined, baseCommit: string | undefined;
+    let token: string | undefined;
+    let baseCommit: string | undefined, diffBaseCommit: string | undefined;
 
     try {
       // Read the proposal token from the downloaded code
@@ -131,8 +143,17 @@ export class Code extends APIResource {
     } catch (e) {}
 
     try {
+      // Read the proposal base commit for directly downloaded code
       baseCommit = await readFile(
         `${path}/.git/automa_proposal_base_commit`,
+        'utf8',
+      );
+    } catch (e) {}
+
+    try {
+      // Read the diff base commit for proxy downloaded code
+      diffBaseCommit = await readFile(
+        `${path}/.git/automa_diff_base_commit`,
         'utf8',
       );
     } catch (e) {}
@@ -141,7 +162,7 @@ export class Code extends APIResource {
       throw new Error('Failed to read the stored proposal token');
     }
 
-    const diff = await get_diff(path);
+    const diff = await get_diff(path, baseCommit ?? diffBaseCommit);
 
     return this._client.post<void, CodeProposeRequestParams>(
       '/bot/code/propose',
