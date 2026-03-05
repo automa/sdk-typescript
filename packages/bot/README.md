@@ -78,17 +78,15 @@ When writing tests for your bot, you can mock the client methods to simulate the
 
 ```ts
 import sinon from 'sinon';
-import { Automa, CodeFolder } from '@automa/bot';
-
-const client = new Automa();
+import { Code, CodeFolder } from '@automa/bot';
 
 const downloadStub = sinon
-  .stub(client.code, 'download')
+  .stub(Code.prototype, 'download')
   .resolves(new CodeFolder('./fixtures/code'));
 
-const proposeStub = sinon.stub(client.code, 'propose').resolves();
+const proposeStub = sinon.stub(Code.prototype, 'propose').resolves();
 
-const cleanupStub = sinon.stub(client.code, 'cleanup').resolves();
+const cleanupStub = sinon.stub(Code.prototype, 'cleanup').resolves();
 ```
 
 ### Webhook signatures in tests
