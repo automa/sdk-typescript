@@ -55,4 +55,5 @@ export class Automa extends APIClient {
   }
 
   code: API.Code = new API.Code(this);
+  task: API.Task = new API.Task(this);
 }

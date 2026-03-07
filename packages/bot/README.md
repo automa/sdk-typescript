@@ -129,6 +129,7 @@ Object parameters:
 Properties:
 
 - `code`: `Code` resource providing code related methods.
+- `task`: `Task` resource providing task related methods.
 
 ### `code.download`
 
@@ -165,6 +166,21 @@ Parameters:
 - `body` (`CodeCleanupParams`)
   - `task` (object)
     - `id` (int): The identifier of the task.
+
+### `task.log`
+
+Logs an event for the specified task.
+
+Parameters:
+
+- `body` (`TaskLogParams`)
+  - `timestamp` (number): The timestamp of the event in seconds since epoch.
+  - `task` (object)
+    - `id` (number): The identifier of the task.
+    - `token` (string): The authorization token for the task sent in webhook request.
+  - `event` (object): The event to log.
+    - `type` (string): The type of the event.
+    - Other arbitrary properties depending on the event type.
 
 ### `CodeFolder`
 
